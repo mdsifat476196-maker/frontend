@@ -17,7 +17,7 @@ function Nav() {
     return (
         <>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-around" }}>
-                <button onClick={() => navigate(-1)}>Back</button>
+                <button onClick={() => navigate(-1)}>Back</button>git branch -M main
                 <div style={{ display: "flex", width: "70%", alignItems: "center", justifyContent: "space-between" }}>
                     <button onClick={(e) => navigate("/login")}>Login</button>
                     <button onClick={(e) => navigate("/register")}>Register</button>
