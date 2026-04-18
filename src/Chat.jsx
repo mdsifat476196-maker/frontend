@@ -120,20 +120,48 @@ function Chat() {
 
                                 return (
                                     <div key={index} style={{
-                                        display: "flex",
-                                        justifyContent: m.senderId === myId ? "flex-end" : "flex-start"
-                                    }}>
-                                        <div style={{
-                                            background: m.senderId === myId ? "green" : "gray",
-                                            color: "white",
-                                            padding: "8px",
-                                            borderRadius: "10px",
-                                            margin: "5px",
-                                            maxWidth: "40%"
-                                        }}>
-                                            {m.text}
-                                        </div>
-                                    </div>
+    display: "flex",
+    alignItems: "center",
+    justifyContent: m.senderId === myId ? "flex-end" : "flex-start",
+    gap: "8px"
+}}>
+
+    {/* Friend image */}
+    {m.senderId !== myId && (
+        <img
+            src={userData?.profilePic}
+            style={{
+                width: "30px",
+                height: "30px",
+                borderRadius: "50%"
+            }}
+        />
+    )}
+
+    {/* Message bubble */}
+    <div style={{
+        background: m.senderId === myId ? "#4CAF50" : "#555",
+        color: "white",
+        padding: "10px 14px",
+        borderRadius: "18px",
+        maxWidth: "40%"
+    }}>
+        {m.text}
+    </div>
+
+    {/* My image */}
+    {m.senderId === myId && (
+        <img
+            src={localStorage.getItem("profilePic")}
+            style={{
+                width: "30px",
+                height: "30px",
+                borderRadius: "50%"
+            }}
+        />
+    )}
+
+</div>
                                 )
                             })
                         }
