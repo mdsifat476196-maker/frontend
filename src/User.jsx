@@ -13,7 +13,7 @@ function User() {
     useEffect(() => {
         if (!token) {
             alert("register or login first.");
-            navigate("/login");
+            navigate("/register");
             return;
         }
     }, []);
