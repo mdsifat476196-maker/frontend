@@ -39,6 +39,7 @@ function Register() {
         localStorage.setItem("name", data.name);
         localStorage.setItem("email",data.user.email);
         localStorage.setItem("id",data.user._id);
+        localStorage.setItem("profilePic", data.user.profilePic);
         setName("");
         setEmail("");
         setPassword("");
