@@ -110,7 +110,7 @@ function Register() {
                 )}
 
                 <button onClick={accountCreation}
-                    disabled={progress == 100 ? false : true}
+                    disabled={!fileName}
                 >create account</button><br /><br />
 
 
