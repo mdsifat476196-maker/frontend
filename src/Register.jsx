@@ -76,10 +76,11 @@ function Register() {
             })
             console.log(res);
             console.log(res.data.secure_url);
-            setFIleName(res.data.secure_url);
-            console.log(res.data.secure_url);
-            if (!fileName) {
-                return alert("Image upload hoi nai");
+            let imageUrl = res.data.secure_url;
+            setFIleName(imageUrl);
+
+            if (!imageUrl) {
+                alert("Image upload failed");
             }
 
         } catch (error) {
