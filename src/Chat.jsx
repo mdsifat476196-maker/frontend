@@ -1,87 +1,61 @@
-import React, { useEffect, useRef } from "react";
-import { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import Nav from "./nav";
 import { io } from "socket.io-client";
 
 function Chat() {
 
+    const socketRef = useRef(null);
+    const { id } = useParams();
 
-    let socketRef = useRef(null);
+    const [userData, setUserData] = useState(null);
+    const [userName] = useState(localStorage.getItem("name"));
+    const [friendName, setFriendName] = useState("");
+    const [msg, setMsg] = useState("");
+    const [messages, setMessages] = useState([]);
 
+    const myId = localStorage.getItem("id");
+    const myProfile = localStorage.getItem("profilePic");
+
+    // ✅ socket connect (ONLY ONCE)
     useEffect(() => {
         socketRef.current = io(import.meta.env.VITE_BACKEND_URI);
 
+        // add user
+        if (myId) {
+            socketRef.current.emit("add-user", myId);
+        }
+
+        // receive message
+        socketRef.current.on("recive-msg", (data) => {
+            setMessages((prev) => [...prev, data]);
+        });
+
         return () => {
-            socketRef.current.disconnect(); // cleanup
+            socketRef.current.disconnect();
         };
     }, []);
 
-    socketRef.current = io(`${import.meta.env.VITE_BACKEND_URI}`);
-
-    let { id } = useParams();
-    let [userData, setUserData] = useState(null);
-    let [userName, setUserName] = useState(localStorage.getItem("name"));
-    let [friendName, setFriendName] = useState("");
-    let [msg, setMsg] = useState();
-    let [messages, setMessages] = useState([]);
-
-
+    // ✅ get friend data
     useEffect(() => {
         async function datafetch() {
-            let getUserData = await fetch(`${import.meta.env.VITE_BACKEND_URI}/get-user-data`, {
+            let res = await fetch(`${import.meta.env.VITE_BACKEND_URI}/get-user-data`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({
-                    id: id
-                })
+                body: JSON.stringify({ id })
             });
-            let data = await getUserData.json();
+
+            let data = await res.json();
             setUserData(data);
-            console.log(data);
             setFriendName(data.name);
         }
+
         datafetch();
-    }, []);
+    }, [id]);
 
-    // আপনার বর্তমান কোডের সাথে এটি যোগ করুন
-    useEffect(() => {
-        const userId = localStorage.getItem("id");
-        if (userId) {
-            // সার্ভারে জানানো যে এই ইউজারটি অনলাইনে এসেছে
-            socketRef.current.emit("add-user", userId);
-        }
-    }, []);
-
-    let handleMessage = () => {
-        let messageData = {
-            senderId: localStorage.getItem("id"),
-            reciverId: id,
-            text: msg
-        }
-        socketRef.current.emit("send-message", messageData);
-        setMessages((prev) => [...prev, messageData]);
-        setMsg("");
-    };
-
-    useEffect(() => {
-        socketRef.current.on("recive-msg", (data) => {
-            console.log(data);
-            setMessages((prev) => [...prev, data]);
-        });
-    }, []);
-
-    useEffect(() => {
-        let chatDiv = document.getElementById("chatdiv");
-
-        if (chatDiv) {
-            chatDiv.scrollTop = chatDiv.scrollHeight;
-        }
-    }, [messages]);
-
-
+    // ✅ get old messages
     useEffect(() => {
         async function getOldMessages() {
             let res = await fetch(`${import.meta.env.VITE_BACKEND_URI}/get-messages`, {
@@ -90,91 +64,146 @@ function Chat() {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    senderId: localStorage.getItem("id"),
+                    senderId: myId,
                     reciverId: id
                 })
             });
 
             let data = await res.json();
-            setMessages(data); // ✅ পুরানো message বসবে
+            setMessages(data);
         }
 
         getOldMessages();
-    }, []);
+    }, [id]);
 
+    // ✅ auto scroll
+    useEffect(() => {
+        let chatDiv = document.getElementById("chatdiv");
+        if (chatDiv) {
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+        }
+    }, [messages]);
+
+    // ✅ send message
+    const handleMessage = () => {
+        if (!msg.trim()) return;
+
+        let messageData = {
+            senderId: myId,
+            reciverId: id,
+            text: msg
+        };
+
+        socketRef.current.emit("send-message", messageData);
+        setMessages((prev) => [...prev, messageData]);
+        setMsg("");
+    };
 
     return (
-        <>
-            <div style={{ height: "100vh", width: "100vw" }}>
-                <Nav />
-                <div style={{ height: "90%", width: "100%", backgroundColor: "blue", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                    <h6>{userName} chat with {friendName}</h6>
-                    <div className="chatdiv" id="chatdiv" style={{
-                        flex: 1,
-                        overflowY: "auto",
-                        padding: "10px"
-                    }}>
-                        {
-                            messages.map((m, index) => {
-                                let myId = localStorage.getItem("id");
+        <div style={{ height: "100vh", width: "100vw" }}>
+            <Nav />
 
-                                return (
-                                    <div key={index} style={{
-    display: "flex",
-    alignItems: "center",
-    justifyContent: m.senderId === myId ? "flex-end" : "flex-start",
-    gap: "8px"
-}}>
+            <div style={{
+                height: "90%",
+                width: "100%",
+                background: "linear-gradient(135deg, #667eea, #764ba2)",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between"
+            }}>
 
-    {/* Friend image */}
-    {m.senderId !== myId && (
-        <img
-            src={userData?.profilePic}
-            style={{
-                width: "30px",
-                height: "30px",
-                borderRadius: "50%"
-            }}
-        />
-    )}
+                <h4 style={{ textAlign: "center", color: "white" }}>
+                    {userName} chat with {friendName}
+                </h4>
 
-    {/* Message bubble */}
-    <div style={{
-        background: m.senderId === myId ? "#4CAF50" : "#555",
-        color: "white",
-        padding: "10px 14px",
-        borderRadius: "18px",
-        maxWidth: "40%"
-    }}>
-        {m.text}
-    </div>
+                {/* CHAT AREA */}
+                <div id="chatdiv" style={{
+                    flex: 1,
+                    overflowY: "auto",
+                    padding: "10px"
+                }}>
+                    {
+                        messages.map((m, index) => (
+                            <div key={index} style={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: m.senderId === myId ? "flex-end" : "flex-start",
+                                gap: "8px"
+                            }}>
 
-    {/* My image */}
-    {m.senderId === myId && (
-        <img
-            src={localStorage.getItem("profilePic")}
-            style={{
-                width: "30px",
-                height: "30px",
-                borderRadius: "50%"
-            }}
-        />
-    )}
+                                {/* Friend Image */}
+                                {m.senderId !== myId && (
+                                    <img
+                                        src={userData?.profilePic}
+                                        alt=""
+                                        style={{
+                                            width: "30px",
+                                            height: "30px",
+                                            borderRadius: "50%"
+                                        }}
+                                    />
+                                )}
 
-</div>
-                                )
-                            })
-                        }
-                    </div>
-                    <div className="inputdiv" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <textarea type="text" name="message" id="message" value={msg} onChange={(e) => setMsg(e.target.value)} />
-                        <button onClick={handleMessage}>send</button>
-                    </div>
+                                {/* Message */}
+                                <div style={{
+                                    background: m.senderId === myId ? "#4CAF50" : "#444",
+                                    color: "white",
+                                    padding: "10px 14px",
+                                    borderRadius: "18px",
+                                    maxWidth: "40%"
+                                }}>
+                                    {m.text}
+                                </div>
+
+                                {/* My Image */}
+                                {m.senderId === myId && (
+                                    <img
+                                        src={myProfile}
+                                        alt=""
+                                        style={{
+                                            width: "30px",
+                                            height: "30px",
+                                            borderRadius: "50%"
+                                        }}
+                                    />
+                                )}
+                            </div>
+                        ))
+                    }
                 </div>
-            </div>
-        </>
-    )
-}
 
+                {/* INPUT */}
+                <div style={{
+                    display: "flex",
+                    padding: "10px",
+                    gap: "10px"
+                }}>
+                    <textarea
+                        value={msg}
+                        onChange={(e) => setMsg(e.target.value)}
+                        style={{
+                            flex: 1,
+                            borderRadius: "10px",
+                            padding: "10px"
+                        }}
+                    />
+                    <button
+                        onClick={handleMessage}
+                        style={{
+                            padding: "10px 20px",
+                            borderRadius: "10px",
+                            background: "#4CAF50",
+                            color: "white",
+                            border: "none"
+                        }}
+                    >
+                        Send
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    );
+}
 
 export default Chat;
