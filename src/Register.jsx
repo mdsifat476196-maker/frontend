@@ -76,7 +76,10 @@ function Register() {
             })
             console.log(res);
             console.log(res.data.secure_url);
-            setFIleName(res.data.secure_url)
+            setFIleName(res.data.secure_url);
+            if (!fileName) {
+                return alert("Image upload hoi nai");
+            }
 
         } catch (error) {
             console.log(error.name);
