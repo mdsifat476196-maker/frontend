@@ -41,7 +41,10 @@ function Login() {
             <center>
                 <Nav />
                 <h2>Login account</h2>
+                <p>Email : </p>
                 <input type="email" name="email" id="email" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} /><br /><br />
+                
+                <p>Pawwsord : </p>
                 <input type="password" name="password" id="password" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} /><br /><br />
 
                 <button onClick={accountLogin}>login account</button><br /><br /><br />
