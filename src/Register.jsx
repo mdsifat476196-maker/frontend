@@ -88,7 +88,7 @@ function Register() {
         <>
             <center>
                 <Nav />
-                <h2>কি খবর মামু ( সাইফুর ) </h2>
+                <h2>কি খবর সাইফুর মামু</h2>
                 <h2>Register account</h2>
                 <p>Name : </p>
                 <input type="text" name="name" id="name" placeholder="Enter your name" value={name} onChange={(e) => setName(e.target.value)} required /><br /><br />
