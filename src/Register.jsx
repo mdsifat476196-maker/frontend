@@ -89,8 +89,11 @@ function Register() {
             <center>
                 <Nav />
                 <h2>Register account</h2>
+                <h3>Name : </h3>
                 <input type="text" name="name" id="name" placeholder="Enter your name" value={name} onChange={(e) => setName(e.target.value)} required /><br /><br />
+                <h3>Email : </h3>
                 <input type="email" name="email" id="email" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} required /><br /><br />
+                <h3>Password : </h3>
                 <input type="password" name="password" id="password" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} required /><br /><br />
 
                 <input type="file" accept="image/*" onChange={(e) =>
