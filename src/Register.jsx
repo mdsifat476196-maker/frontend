@@ -96,6 +96,7 @@ function Register() {
                 <p>Password : </p>
                 <input type="password" name="password" id="password" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} required /><br /><br />
 
+                <p>Profile photo</p>
                 <input type="file" accept="image/*" onChange={(e) =>
                     uploadImage(e.target.files[0])
                 }
