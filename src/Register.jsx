@@ -1,134 +1,138 @@
 import React, { useState, useRef } from "react";
 import axios from "axios";
-import imageCompression from "browser-image-compression"
+import imageCompression from "browser-image-compression";
 import { Link, useNavigate } from "react-router-dom";
-import Nav from "./nav";
-function Register() {
 
-    let [name, setName] = useState("");
-    let [email, setEmail] = useState("");
-    let [password, setPassword] = useState("");
-    let [isFile, setIsFile] = useState("");
-    let [fileName, setFIleName] = useState("");
-    let [progress, setProgress] = useState(0);
-    let fileRef = useRef();
+export default function Register() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fileName, setFileName] = useState("");
+  const [progress, setProgress] = useState(0);
+  const fileRef = useRef();
 
-    let navigate = useNavigate();
+  const navigate = useNavigate();
 
-    let accountCreation = async (e) => {
-        console.log(name, email, password);
-        if (!name && !email && !password) {
-            return alert("fill al field")
-        }
-
-        let registerData = await fetch(`${import.meta.env.VITE_BACKEND_URI}/register`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                name: name,
-                email: email,
-                password: password,
-                profilePic: fileName
-            })
-        })
-        let data = await registerData.json();
-        console.log(data);
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("name", data.name);
-        localStorage.setItem("email",data.user.email);
-        localStorage.setItem("id",data.user._id);
-        localStorage.setItem("profilePic", data.user.profilePic);
-        setName("");
-        setEmail("");
-        setPassword("");
-        setProgress(0);
-        fileRef.current.value = "";
-        if (data.successCode) {
-            navigate("/");
-        }
+  const accountCreation = async () => {
+    if (!name || !email || !password) {
+      return alert("Fill all fields");
     }
 
-    let uploadImage = async (file) => {
-        try {
-            // 🔹 1. Compress image
-            const compressedFile = await imageCompression(file, {
-                maxSizeMB: 1,          // max 1MB
-                maxWidthOrHeight: 800, // resize
-                useWebWorker: true
-            });
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_URI}/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password, profilePic: fileName })
+    });
 
-            let sigRes = await fetch(`${import.meta.env.VITE_BACKEND_URI}/get-signature`);
-            let { timestamp, signature, api_key, cloud_name } = await sigRes.json();
+    const data = await res.json();
 
-            let formData = new FormData();
-            formData.append("file", compressedFile);
-            formData.append("api_key", api_key);
-            formData.append("timestamp", timestamp);
-            formData.append("signature", signature);
-            setIsFile(true)
-            let res = await axios.post(`https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`, formData, {
-                onUploadProgress: (e) => {
-                    let percent = Math.round((e.loaded * 100) / e.total);
-                    setProgress(percent); // 👈 UI তে দেখাবা
-                }
-            })
-            console.log(res);
-            console.log(res.data.secure_url);
-            let imageUrl = res.data.secure_url;
-            setFIleName(imageUrl);
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("name", data.name);
+    localStorage.setItem("email", data.user.email);
+    localStorage.setItem("id", data.user._id);
+    localStorage.setItem("profilePic", data.user.profilePic);
 
-            if (!imageUrl) {
-                alert("Image upload failed");
-            }
+    if (data.successCode) navigate("/");
+  };
 
-        } catch (error) {
-            console.log(error.name);
-            console.log(error.message);
+  const uploadImage = async (file) => {
+    try {
+      const compressedFile = await imageCompression(file, {
+        maxSizeMB: 1,
+        maxWidthOrHeight: 800,
+        useWebWorker: true
+      });
+
+      const sigRes = await fetch(`${import.meta.env.VITE_BACKEND_URI}/get-signature`);
+      const { timestamp, signature, api_key, cloud_name } = await sigRes.json();
+
+      const formData = new FormData();
+      formData.append("file", compressedFile);
+      formData.append("api_key", api_key);
+      formData.append("timestamp", timestamp);
+      formData.append("signature", signature);
+
+      const res = await axios.post(
+        `https://api.cloudinary.com/v1_1/${cloud_name}/image/upload`,
+        formData,
+        {
+          onUploadProgress: (e) => {
+            const percent = Math.round((e.loaded * 100) / e.total);
+            setProgress(percent);
+          }
         }
+      );
+
+      setFileName(res.data.secure_url);
+    } catch (err) {
+      console.log(err);
     }
+  };
 
-    return (
-        <>
-            <center>
-                <Nav />
-                <h2>কি খবর সাইফুর মামু</h2>
-                <h2>Register account</h2>
-                <p>Name : </p>
-                <input type="text" name="name" id="name" placeholder="Enter your name" value={name} onChange={(e) => setName(e.target.value)} required /><br /><br />
-                <p>Email : </p>
-                <input type="email" name="email" id="email" placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} required /><br /><br />
-                <p>Password : </p>
-                <input type="password" name="password" id="password" placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} required /><br /><br />
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-blue-900 text-white px-4">
+      <div className="w-full max-w-md bg-white/10 backdrop-blur-lg p-8 rounded-2xl shadow-2xl border border-white/20">
+        <h2 className="text-3xl font-bold text-center mb-6">Create Account</h2>
 
-                <p>Profile photo</p>
-                <input type="file" accept="image/*" onChange={(e) =>
-                    uploadImage(e.target.files[0])
-                }
-                    ref={fileRef}
-                    required />
-                <br /><br />
+        <input
+          type="text"
+          placeholder="Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full mb-4 p-3 rounded-lg bg-white/20 border border-white/30 focus:outline-none"
+        />
 
-                {progress > 0 && (
-                    <h1> file uploded : {progress}%</h1>
-                )}
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full mb-4 p-3 rounded-lg bg-white/20 border border-white/30 focus:outline-none"
+        />
 
-                <button onClick={accountCreation}
-                    disabled={!fileName}
-                >create account</button><br /><br />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full mb-4 p-3 rounded-lg bg-white/20 border border-white/30 focus:outline-none"
+        />
 
+        <input
+          type="file"
+          accept="image/*"
+          ref={fileRef}
+          onChange={(e) => uploadImage(e.target.files[0])}
+          className="w-full mb-4 text-sm"
+        />
 
+        {progress > 0 && (
+          <div className="mb-4">
+            <div className="w-full bg-gray-700 rounded-full h-2">
+              <div
+                className="bg-blue-500 h-2 rounded-full"
+                style={{ width: `${progress}%` }}
+              ></div>
+            </div>
+            <p className="text-sm mt-1">Uploading: {progress}%</p>
+          </div>
+        )}
 
-                <h3>
-                    যদি তোমার একাউন্ট থাকে তবে
-                    <Link to={"/login"}> Login </Link>
-                    করো
-                </h3>
+        <button
+          onClick={accountCreation}
+          disabled={!fileName}
+          className="w-full py-3 rounded-lg bg-blue-600 hover:bg-blue-700 transition disabled:opacity-50"
+        >
+          Sign Up
+        </button>
 
-            </center>
-        </>
-    )
+        <p className="text-center mt-4 text-sm">
+          Already have an account?{' '}
+          <Link to="/login" className="text-blue-400 hover:underline">
+            Login
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
 }
-
-export default Register;
