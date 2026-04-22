@@ -41,11 +41,12 @@ function Register() {
             });
 
             setFIleName(res.data.secure_url);
+
             setIsUploading(false);
         } catch (error) {
             console.error(error);
             setIsUploading(false);
-            alert("ছবি আপলোড ব্যর্থ হয়েছে!");
+            alert("ছবি আপলোড ব্যর্থ হয়েছে!");
         }
     };
 
@@ -53,13 +54,42 @@ function Register() {
         if (!name || !email || !password || !fileName) {
             return alert("সবগুলো তথ্য সঠিকভাবে দিন।");
         }
-        // আপনার ব্যাকএন্ড লজিক এখানে কল করুন...
-        navigate("/");
+
+        try {
+            // ব্যাকএন্ডে রেজিস্ট্রেশন রিকোয়েস্ট পাঠানো
+            let response = await axios.post(`${import.meta.env.VITE_BACKEND_URI}/register`, {
+                name: name,
+                email: email,
+                password: password,
+                profilePic: fileName
+            });
+
+            // Axios এর ডাটা সবসময় response.data এর ভেতর থাকে
+            let res = response.data;
+
+            if (res.successCode) {
+                alert("রেজিস্ট্রেশন সফল হয়েছে!");
+                localStorage.setItem("token", res.token);
+                localStorage.setItem("name", res.name);
+                localStorage.setItem("email", res.user.email);
+                localStorage.setItem("id", res.user._id);
+                localStorage.setItem("profilePic", res.user.profilePic);
+                navigate("/");
+            } else {
+                // যদি successCode না থাকে (যেমন ইউজার আগে থেকেই আছে)
+                alert(res.msg || "রেজিস্ট্রেশন ব্যর্থ হয়েছে!");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("সার্ভারে সমস্যা হচ্ছে, পরে চেষ্টা করুন।");
+        }
     };
 
+    // ডার্ক থিম স্টাইলস
     const styles = `
         @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;500;700&display=swap');
 
+        /* হলুদ স্ক্রলবার */
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -69,6 +99,9 @@ function Register() {
         ::-webkit-scrollbar-thumb {
             background: #ffcc00;
             border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #e6b800;
         }
 
         .register-container {
@@ -94,21 +127,6 @@ function Register() {
             margin-top: 30px;
         }
 
-        .main-heading {
-            text-align: center;
-            margin-bottom: 8px;
-            color: #fff;
-            font-size: 22px; /* ফ্রন্ট সাইজ কমানো হয়েছে */
-            font-weight: 700;
-        }
-
-        .sub-text {
-            text-align: center;
-            color: #94a3b8;
-            margin-bottom: 30px;
-            font-size: 14px;
-        }
-
         .input-group {
             margin-bottom: 20px;
         }
@@ -130,7 +148,6 @@ function Register() {
             outline: none;
             transition: 0.3s;
             font-size: 16px;
-            box-sizing: border-box;
         }
 
         .input-style:focus {
@@ -146,6 +163,11 @@ function Register() {
             cursor: pointer;
             transition: 0.3s;
             background: rgba(15, 23, 42, 0.5);
+        }
+
+        .upload-area:hover {
+            border-color: #ffcc00;
+            background: rgba(255, 204, 0, 0.05);
         }
 
         .submit-btn {
@@ -168,6 +190,11 @@ function Register() {
             cursor: not-allowed;
         }
 
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 204, 0, 0.3);
+        }
+
         .link-text {
             color: #ffcc00;
             text-decoration: none;
@@ -180,14 +207,14 @@ function Register() {
             <style>{styles}</style>
             <div className="register-container">
                 <Nav />
-                
+
                 <div className="glass-card">
-                    <h1 className="main-heading">কি খবর সাইফুর মামু! 👋</h1>
-                    <p className="sub-text">আপনার নতুন অ্যাকাউন্ট তৈরি করুন</p>
+                    <h1 style={{ textAlign: 'center', marginBottom: '10px', color: '#fff' }}>কি খবর সাইফুর মামু! 👋</h1>
+                    <p style={{ textAlign: 'center', color: '#94a3b8', marginBottom: '30px' }}>আপনার নতুন অ্যাকাউন্ট তৈরি করুন</p>
 
                     <div className="input-group">
-                        <label>নাম</label>
-                        <input className="input-style" type="text" placeholder="উদা: সাইফুর" value={name} onChange={(e) => setName(e.target.value)} />
+                        <label>পুরো নাম</label>
+                        <input className="input-style" type="text" placeholder="উদা: আসিফ রহমান" value={name} onChange={(e) => setName(e.target.value)} />
                     </div>
 
                     <div className="input-group">
@@ -196,7 +223,7 @@ function Register() {
                     </div>
 
                     <div className="input-group">
-                        <label>পাসওয়ার্ড</label>
+                        <label>পাসওয়ার্ড</label>
                         <input className="input-style" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} />
                     </div>
 
@@ -204,7 +231,7 @@ function Register() {
                         <label>প্রোফাইল ছবি</label>
                         <div className="upload-area" onClick={() => fileRef.current.click()}>
                             {fileName ? (
-                                <span style={{ color: '#4ade80' }}>ছবি আপলোড হয়েছে ✅</span>
+                                <span style={{ color: '#4ade80' }}>ছবি আপলোড হয়েছে ✅</span>
                             ) : (
                                 <span>{isUploading ? `আপলোড হচ্ছে... ${progress}%` : "এখানে ক্লিক করে ছবি বাছুন"}</span>
                             )}
