@@ -23,19 +23,23 @@ function Login() {
                     password: password
                 })
             });
-            let data = await loginData.json();
-            
-            if (data.successCode) {
-                localStorage.setItem("token", data.token);
-                localStorage.setItem("name", data.name);
-                localStorage.setItem("email", data.user.email);
-                localStorage.setItem("id", data.user._id);
-                localStorage.setItem("profilePic", data.user.profilePic);
+
+            let res = await loginData.json();
+
+            // এখানে res.data এর বদলে সরাসরি res ব্যবহার করতে হবে
+            if (res.successCode) {
+                localStorage.setItem("token", res.token);
+                localStorage.setItem("name", res.name);
+                localStorage.setItem("email", res.user.email);
+                localStorage.setItem("id", res.user._id);
+                localStorage.setItem("profilePic", res.user.profilePic);
+
                 setEmail("");
                 setPassword("");
                 navigate("/");
             } else {
-                alert(data.message || "লগইন তথ্য ভুল।");
+                // যদি লগইন সফল না হয় (যেমন ভুল পাসওয়ার্ড)
+                alert(res.msg || "লগইন ব্যর্থ হয়েছে!");
             }
         } catch (err) {
             console.error(err);
@@ -143,30 +147,30 @@ function Login() {
             <style>{styles}</style>
             <div className="login-container">
                 <Nav />
-                
+
                 <div className="glass-card">
                     <h1 style={{ textAlign: 'center', marginBottom: '10px', color: '#fff' }}>স্বাগতম! 👋</h1>
                     <p style={{ textAlign: 'center', color: '#94a3b8', marginBottom: '30px' }}>আপনার অ্যাকাউন্টে লগইন করুন</p>
 
                     <div className="input-group">
                         <label>ইমেইল ঠিকানা</label>
-                        <input 
-                            className="input-style" 
-                            type="email" 
-                            placeholder="example@mail.com" 
-                            value={email} 
-                            onChange={(e) => setEmail(e.target.value)} 
+                        <input
+                            className="input-style"
+                            type="email"
+                            placeholder="example@mail.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                         />
                     </div>
 
                     <div className="input-group">
                         <label>পাসওয়ার্ড</label>
-                        <input 
-                            className="input-style" 
-                            type="password" 
-                            placeholder="••••••••" 
-                            value={password} 
-                            onChange={(e) => setPassword(e.target.value)} 
+                        <input
+                            className="input-style"
+                            type="password"
+                            placeholder="••••••••"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                         />
                     </div>
 
