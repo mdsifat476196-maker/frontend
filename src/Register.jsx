@@ -185,8 +185,8 @@ function Register() {
                     <p style={{ textAlign: 'center', color: '#94a3b8', marginBottom: '30px' }}>আপনার নতুন অ্যাকাউন্ট তৈরি করুন</p>
 
                     <div className="input-group">
-                        <label>পুরো নাম</label>
-                        <input className="input-style" type="text" placeholder="উদা: আসিফ রহমান" value={name} onChange={(e) => setName(e.target.value)} />
+                        <label>নাম</label>
+                        <input className="input-style" type="text" placeholder="উদা: সাইফুর" value={name} onChange={(e) => setName(e.target.value)} />
                     </div>
 
                     <div className="input-group">
