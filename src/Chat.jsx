@@ -207,7 +207,7 @@ function Chat() {
                 />
                 <div>
                     <h3 style={{ margin: 0, fontSize: '18px' }}>{friendName}</h3>
-                    <p style={{ margin: 0, fontSize: '12px', color: '#4ade80' }}>অনলাইন</p>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#4ade80' }}></p>
                 </div>
             </div>
 
